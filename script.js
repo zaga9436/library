@@ -13,9 +13,12 @@ function Book(title, author, pages, read){
     this.read = read;
 }
 
+loadLibrary();
+
 function addBookToLibrary(){
     const newBook = new Book (title.value, author.value, pages.value, read.checked);
     myLibrary.push(newBook);
+    saveLibrary();
 }
 
 function clearForm() {
@@ -59,6 +62,7 @@ function displayBooks(myLibrary) {
         toggleBtn.addEventListener('click', () => {
             book.read = !book.read;
             displayBooks(myLibrary);
+            saveLibrary();
         });
         tdToggle.appendChild(toggleBtn);
 
@@ -69,6 +73,7 @@ function displayBooks(myLibrary) {
         deleteBtn.addEventListener('click', () => {
             myLibrary.splice(index, 1);
             displayBooks(myLibrary);
+            saveLibrary();
         });
         tdDelete.appendChild(deleteBtn);
 
@@ -84,5 +89,19 @@ function displayBooks(myLibrary) {
         tbody.appendChild(tr);
     });
 }
+
+
+function saveLibrary() {
+    localStorage.setItem('myLibrary', JSON.stringify(myLibrary));
+}
+
+function loadLibrary() {
+    const data = localStorage.getItem('myLibrary');
+    if (data) {
+        myLibrary = JSON.parse(data);
+        displayBooks(myLibrary);
+    }
+}
+
 
 
