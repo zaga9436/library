@@ -4,104 +4,83 @@ const pages = document.getElementById('pages');
 const read = document.getElementById('read');
 const add = document.getElementById('add');
 
-let myLibrary = [];
+const library = new Library();
+library.display();
 
-function Book(title, author, pages, read){
-    this.title = title;
-    this.author = author;
-    this.pages = pages;
-    this.read = read;
+class Book {
+    constructor(title, author, pages, read){
+        this.title = title;
+        this.author = author;
+        this.pages = pages;
+        this.read = read;
+    }
+    toggleRead(){
+        this.read = !this.read;
+    }
 }
 
-loadLibrary();
 
-function addBookToLibrary(){
-    const newBook = new Book (title.value, author.value, pages.value, read.checked);
-    myLibrary.push(newBook);
-    saveLibrary();
-}
+class Library {
+    constructor() {
+        this.books = JSON.parse(localStorage.getItem('myLibrary')) || [];
+    }
 
-function clearForm() {
-    title.value = '';
-    author.value = '';
-    pages.value = '';
-    read.checked = false;
-}
+    addBook(book) {
+        this.books.push(book);
+        this.save();
+    }
 
-add.addEventListener('click', () => {
-    addBookToLibrary();
-    displayBooks(myLibrary);
-    clearForm();
-});
+    deleteBook(index) {
+        this.books.splice(index, 1);
+        this.save();
+    }
 
+    toggleBook(index){
+        this.books[index].toggleRead();
+        this.save();
+    }
 
-function displayBooks(myLibrary) {
+    save() {
+        localStorage.setItem('myLibrary', JSON.stringify(this.books));
+    }
+
+    display() {
     const tbody = document.querySelector('tbody');
-    tbody.innerHTML = ''; 
+    tbody.innerHTML = '';
 
-    myLibrary.forEach((book, index) => {
+    this.books.forEach((book, index) => {
         const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.pages}</td>
+            <td>${book.read ? 'Read' : 'Not read'}</td>
+            <td><button class="toggle">Toggle</button></td>
+            <td><button class="delete">Delete</button></td>
+        `;
 
-        
-        const tdTitle = document.createElement('td');
-        tdTitle.textContent = book.title;
-
-        const tdAuthor = document.createElement('td');
-        tdAuthor.textContent = book.author;
-
-        const tdPages = document.createElement('td');
-        tdPages.textContent = book.pages;
-
-        const tdRead = document.createElement('td');
-        tdRead.textContent = book.read ? 'Read' : 'Not read';
-
-        
-        const tdToggle = document.createElement('td');
-        const toggleBtn = document.createElement('button');
-        toggleBtn.textContent = 'Toggle Read';
-        toggleBtn.addEventListener('click', () => {
-            book.read = !book.read;
-            displayBooks(myLibrary);
-            saveLibrary();
+        tr.querySelector('.toggle').addEventListener('click', () => {
+            this.toggleBook(index);
+            this.display();
         });
-        tdToggle.appendChild(toggleBtn);
 
-        
-        const tdDelete = document.createElement('td');
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => {
-            myLibrary.splice(index, 1);
-            displayBooks(myLibrary);
-            saveLibrary();
+        tr.querySelector('.delete').addEventListener('click', () => {
+            this.deleteBook(index);
+            this.display();
         });
-        tdDelete.appendChild(deleteBtn);
 
-        
-        tr.appendChild(tdTitle);
-        tr.appendChild(tdAuthor);
-        tr.appendChild(tdPages);
-        tr.appendChild(tdRead);
-        tr.appendChild(tdToggle);
-        tr.appendChild(tdDelete);
-
-        
         tbody.appendChild(tr);
-    });
-}
-
-
-function saveLibrary() {
-    localStorage.setItem('myLibrary', JSON.stringify(myLibrary));
-}
-
-function loadLibrary() {
-    const data = localStorage.getItem('myLibrary');
-    if (data) {
-        myLibrary = JSON.parse(data);
-        displayBooks(myLibrary);
+        });
     }
 }
 
 
 
+add.addEventListener('click', () => {
+  const book = new Book(title.value, author.value, pages.value, read.checked);
+  library.addBook(book);
+  library.display();
+
+  title.value = author.value = pages.value = '';
+  read.checked = false;
+});
